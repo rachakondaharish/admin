@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org" 
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{default}">
+    <head>
+        <title>Dashboard</title>
+        <meta name="description" content=""/>
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" />
+        <link rel="stylesheet" href="/css/style.css" />
+	<script src="https://code.jquery.com/jquery-3.2.1.min.js" ></script>
+	<script>
+	
+        function showAppCreateDiv(){
+            $("#createAppDetailsDiv").show();
+            $("#displayAppDetailsDiv").hide();
+          }
+        
+          $(document).ready(function(){
+        	  
+          $("#createAppDetailsDiv").hide();
+          $("#displayAppDetailsDiv").hide();
+          
+          
+          $("#displayApplReleaseDtls").click(function(){
+        	  $.ajax({
+                  type: "POST",
+                  url: "http://localhost:8080/view/application/details",
+                  contentType:"application/json",
+                  data: null,
+                  success: function(data)
+                  {
+                	  var responseArray = $.parseJSON(data);
+                	  console.log(responseArray);
+                	  console.log(responseArray.appDetails);
+                		    $.each(responseArray.appDetails, function(i, item) {
+                		        var $tr = $('<tr>').append(
+                		            $('<td>').text(item.systemCode),
+                		            $('<td>').text(item.appName),
+                		            $('<td>').text(item.environment),
+                		            $('<td>').text(item.releaseDate)
+                		        ); 
+                		        $("#displayAppDetailsDiv").html($tr.wrap('<p>').html());
+                		    });
+		        	$("#displayAppDetailsDiv").show();
+		            $("#createAppDetailsDiv").hide();
+                  }
+                });
+          });
+          
+          $.fn.serializeObject = function () {
+        	       var o = {};
+        	       var a = this.serializeArray();
+        	       $.each(a, function () {
+        	           if (o[this.name] !== undefined) {
+        	               if (!o[this.name].push) {
+        	                   o[this.name] = [o[this.name]];
+        	               }
+        	               o[this.name].push(this.value || '');
+        	          } else {
+        	              o[this.name] = this.value || '';
+        	          }
+        	      });
+        	      return o;
+        	 };
+        	 
+       // this is the id of the form
+          $("#appDetails").submit(function(e) {
+        	  console.log("inside app details");
+              e.preventDefault(); // avoid to execute the actual submit of the form.
+              var formData = $(this).serializeObject();
+              console.log(formData);
+			  console.log("Form data "+JSON.stringify(formData));
+              $.ajax({
+                     type: "POST",
+                     contentType: "application/json",
+                     url:"http://localhost:8080/create/application/details",
+                     data: JSON.stringify(formData), // serializes the form's elements.
+                     success: function(data)
+                     {
+                        // alert(data); // show response
+                     }
+                   });
+
+          });
+          
+         });
+     </script>
+             
+    </head>
+    <body>
+        <div layout:fragment="content">
+            <h1 th:inline="text">Hello [[${#httpServletRequest.remoteUser}]]!</h1>
+            <h2>This is your Dashboard</h2>
+            <div>
+	        	<p>
+		        	<label class="sr-only">Display Application Details</label>
+		        	<button type="button" id="displayApplReleaseDtls">Display Application Release Detail</button>
+	        	</p>
+	        	<p>
+		        	<label class="sr-only">Create Application Details</label>
+		        	<button type="button" id="createApplReleaseDtls" onclick="showAppCreateDiv();">Create Application Release Detail</button>
+	        	</p>
+       		</div>
+        <div id="displayAppDetailsDiv">
+        	<!--  The table should have all the columns for display-->
+        </div>
+        
+        <div id="createAppDetailsDiv">
+        <form class="form-signin" id="appDetails">
+        <label>System Code</label>
+        <input type="text" id="systemCode" name="systemCode"></input><br>
+        <label>App Name</label>
+        <input type="text" id="appName" name="appName"></input><br>
+        <label>Environment</label>
+        <input type="text" id="environment" name="environment"></input><br>
+        <label>Release Date</label>
+        <input type="text" id="releaseDate" name="releaseDate"></input><br>
+        <button class="btn btn-lg btn-primary btn-block" type="submit">Submit</button>
+        </form>
+        </div>
+        </div>
+        
+    </body>
+</html>
